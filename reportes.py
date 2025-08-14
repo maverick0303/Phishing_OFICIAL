@@ -29,55 +29,60 @@ if df_filtrado.empty:
     print(f"❌ No se encontró el usuario '{nombre_filtro}' en la hoja '{nombre_hoja}'")
 else:
     persona = df_filtrado.iloc[0]
-    historial = df_filtrado[["campaign", "event"]].to_dict(orient="records")
+    correo_destino = persona["email"]
 
-    # Cargar plantilla
-    with open(plantilla_html, "r", encoding="utf-8") as f:
-        template = Template(f.read())
+    # Verificar si ya se envió
+    if os.path.exists(registro_enviados):
+        df_registro = pd.read_csv(registro_enviados)
+    else:
+        df_registro = pd.DataFrame(columns=["correo"])
 
-    # Renderizar HTML
-    html_renderizado = template.render(
-        nombre=persona["name"],
-        correo=persona["email"],
-        departamento=persona["department"],
-        historial=historial
-    )
+    if correo_destino in df_registro["correo"].values:
+        print(f"⏭ Ya se envió un correo a: {correo_destino}")
+    else:
+        historial = df_filtrado[["campaign", "event"]].to_dict(orient="records")
 
-    # === Envio de correo ===
-    contenido = html_renderizado
-    contenido += '<br><img src="cid:claroimg" style="width:100%; max-width:600px; margin-top:20px;">'
+        # Cargar plantilla
+        with open(plantilla_html, "r", encoding="utf-8") as f:
+            template = Template(f.read())
 
-    msg = MIMEMultipart("related")
-    msg["Subject"] = "Resultado Simulacion de Phishing – ClaroVTR"
-    msg["From"] = GMAIL_USER
-    msg["To"] = persona["email"]
+        # Renderizar HTML
+        html_renderizado = template.render(
+            nombre=persona["name"],
+            correo=persona["email"],
+            departamento=persona["department"],
+            historial=historial
+        )
 
-    alt = MIMEMultipart("alternative")
-    alt.attach(MIMEText(contenido, "html"))
-    msg.attach(alt)
+        # === Envio de correo ===
+        contenido = html_renderizado
+        contenido += '<br><img src="cid:claroimg" style="width:100%; max-width:600px; margin-top:20px;">'
 
-    if os.path.exists("claro.png"):
-        with open("claro.png", "rb") as img:
-            mime_img = MIMEImage(img.read())
-            mime_img.add_header("Content-ID", "<claroimg>")
-            mime_img.add_header("Content-Disposition", "inline", filename="claro.png")
-            msg.attach(mime_img)
+        msg = MIMEMultipart("related")
+        msg["Subject"] = "Resultado Simulacion de Phishing – ClaroVTR"
+        msg["From"] = GMAIL_USER
+        msg["To"] = correo_destino
 
-    try:
-        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
-            server.login(GMAIL_USER, GMAIL_PASSWORD)
-            server.sendmail(GMAIL_USER, persona["email"], msg.as_string())
-            print(f"✅ Correo enviado a {persona['email']}")
+        alt = MIMEMultipart("alternative")
+        alt.attach(MIMEText(contenido, "html"))
+        msg.attach(alt)
 
-            # Registrar envío
-            if os.path.exists(registro_enviados):
-                df_registro = pd.read_csv(registro_enviados)
-            else:
-                df_registro = pd.DataFrame(columns=["correo"])
+        if os.path.exists("claro.png"):
+            with open("claro.png", "rb") as img:
+                mime_img = MIMEImage(img.read())
+                mime_img.add_header("Content-ID", "<claroimg>")
+                mime_img.add_header("Content-Disposition", "inline", filename="claro.png")
+                msg.attach(mime_img)
 
-            if persona["email"] not in df_registro["correo"].values:
-                df_nuevo = pd.DataFrame({"correo": [persona["email"]]})
+        try:
+            with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
+                server.login(GMAIL_USER, GMAIL_PASSWORD)
+                server.sendmail(GMAIL_USER, correo_destino, msg.as_string())
+                print(f"✅ Correo enviado a {correo_destino}")
+
+                # Registrar envío
+                df_nuevo = pd.DataFrame({"correo": [correo_destino]})
                 df_nuevo.to_csv(registro_enviados, mode="a", header=not os.path.exists(registro_enviados), index=False)
 
-    except Exception as e:
-        print(f"❌ Error enviando correo a {persona['email']}: {e}")
+        except Exception as e:
+            print(f"❌ Error enviando correo a {correo_destino}: {e}")
