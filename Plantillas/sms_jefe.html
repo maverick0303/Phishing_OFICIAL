@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Medida Preventiva – Curso de Phishing</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            color: #333;
+            line-height: 1.5;
+        }
+
+        .contenedor {
+            max-width: 700px;
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+
+        h2 {
+            color: #c0392b;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        th,
+        td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f4f4f4;
+        }
+
+        ul {
+            margin-top: 10px;
+        }
+
+        .footer {
+            font-size: 0.9em;
+            color: #777;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="contenedor">
+        <h2>Estimado @{{ jefe_nombre }}</h2>
+
+        <p>
+            Junto con saludar, queremos informarle que
+            {% if colaboradores|length == 1 %}
+            el colaborador {{ colaboradores[0].nombre }}, quien se encuentra registrado bajo su jefatura directa, ha
+            presentado fallas reiteradas en los ejercicios de simulación de phishing realizados durante los últimos tres
+            meses.
+            {% else %}
+            uno o más colaboradores bajo su jefatura directa han presentado fallas reiteradas en los ejercicios de
+            simulación de phishing realizados durante los últimos tres meses.
+            {% endif %}
+        </p>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>NOMBRES</th>
+                    <th>CARGO</th>
+                    <th>Primer ejercicio<br>Concurso - Abril</th>
+                    <th>Segundo ejercicio<br>Bad Bunny - Mayo</th>
+                    <th>Tercer ejercicio<br>Remuneraciones - Junio</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for c in colaboradores %}
+                <tr>
+                    <td>{{ c.nombre }}</td>
+                    <td>{{ c.cargo }}</td>
+                    <td>{{ c.ej1 }}</td>
+                    <td>{{ c.ej2 }}</td>
+                    <td>{{ c.ej3 }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <p>Estas simulaciones, que forman parte de nuestra estrategia de concientización en ciberseguridad, han
+            identificado interacciones de riesgo tales como:</p>
+        <ul>
+            <li>Clic en enlaces sospechosos</li>
+            <li>Ingreso de credenciales en sitios no confiables</li>
+            <li>Descarga de archivos potencialmente maliciosos</li>
+            <li>Apertura de archivos adjuntos sin verificación</li>
+        </ul>
+
+        <p>
+            Dado el entorno digital actual y las crecientes amenazas a la seguridad de la información y ciberseguridad,
+            es fundamental que todos los colaboradores desarrollen una actitud preventiva frente a estos riesgos. Un
+            descuido puede tener consecuencias graves para la compañía, como fugas de información, interrupciones
+            operacionales o afectaciones a la reputación institucional.
+        </p>
+
+        <p>
+            Agradeceremos su apoyo para reforzar
+            {% if colaboradores|length == 1 %}
+            con {{ colaboradores[0].nombre.split()[0] }},
+            {% else %}
+            con su equipo,
+            {% endif %}
+            la importancia de estos temas y fomentar la participación activa en las capacitaciones y ejercicios
+            preventivos que continuaremos realizando.
+        </p>
+
+        <p>Quedamos a su disposición para cualquier apoyo adicional que requiera.</p>
+
+        <p class="footer">
+            Atentamente,<br><br>
+            Área de Seguridad de la Información<br>
+            ClaroVTR
+        </p>
+
+        <p style="margin-top: 20px;">Saludos</p>
+    </div>
+</body>
+

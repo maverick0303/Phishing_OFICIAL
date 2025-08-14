@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Medida Preventiva – Curso de Phishing</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            color: #333;
+            line-height: 1.5;
+        }
+
+        .contenedor {
+            max-width: 700px;
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+
+        h2 {
+            color: #c0392b;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        th,
+        td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f4f4f4;
+        }
+
+        ul {
+            margin-top: 10px;
+        }
+
+        .footer {
+            font-size: 0.9em;
+            color: #777;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="contenedor">
+        <h2>Hola {{ nombre }},</h2>
+
+        <p>Hemos detectado que tu usuario ha presentado una o más interacciones durante las campañas de simulación de
+            phishing realizadas recientemente.</p>
+        <p>A continuación, te dejamos el resumen de tus interacciones detectadas:</p>
+
+        <p><strong>Correo:</strong> {{ correo }}<br>
+            <strong>Departamento:</strong> {{ departamento }}
+        </p>
+
+        <h3>Historial de participación</h3>
+        <table>
+            <tr>
+                <th>Campaña</th>
+                <th>Evento</th>
+            </tr>
+            {% for fila in historial %}
+            <tr>
+                <td>{{ fila.campaign }}</td>
+                <td>{{ fila.event }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+
+        <p>Te invitamos a reforzar tus conocimientos completando el curso <strong>“Aprendamos sobre Phishing”</strong>
+            en la <a href="https://www.aprendeconectado.cl/inicio/" target="_blank"><strong>Academia
+                    ClaroVTR</strong></a>.</p>
+
+        <p>Gracias por tu compromiso con la seguridad de la información.</p>
+
+        <p class="footer">Atentamente,<br>
+            Seguridad de la Información<br>
+            Gerencia de Ciberseguridad – ClaroVTR</p>
+        <div style="text-align:center; margin-top: 30px;">
+            <img src="../claro.png" style="max-width: 100%; height: auto;" alt="Banner ClaroVTR">
+        </div>
+    </div>
+
+
+</body>
+
+</html>
