@@ -11,52 +11,55 @@ GMAIL_USER = "pruebasunisimple@gmail.com"
 GMAIL_PASSWORD = "ukpu xgyo wpuc grvo"
 
 archivo_excel = os.path.join("BDD", "CURSO_PISHING.xlsx")
-nombre_hoja = "LANZAMIENTO_CLARO(ABRIL)"
-nombre_filtro = "Camila Almendra Soto Rosas"
+hojas = ["LANZAMIENTO_CLARO(ABRIL)", "LANZAMIENTO_BADBUNNY(MAYO)", "LAZAMIENTO_ONEDRIVE(JUNIO)"]
+nombre_filtro = "Paula Carolina Vasquez Ramirez"
 plantilla_html = os.path.join("Plantillas", "sms_usuario.html")
 registro_enviados = "correos_enviados/correos_enviados_individual.csv"
 
 # === Preparacion ===
 os.makedirs("correos_enviados", exist_ok=True)
 
-# Leer Excel y filtrar usuario
+# Leer todas las hojas y concatenar
 print("📤 Buscando usuario...")
-df = pd.read_excel(archivo_excel, sheet_name=nombre_hoja)
-df.columns = df.columns.str.strip().str.lower().str.replace(" ", "_")
+all_data = []
+for hoja in hojas:
+    df_hoja = pd.read_excel(archivo_excel, sheet_name=hoja)
+    df_hoja.columns = df_hoja.columns.str.strip().str.lower().str.replace(" ", "_")
+    df_hoja["_hoja"] = hoja  # opcional: para saber de qué hoja viene
+    all_data.append(df_hoja)
+
+df = pd.concat(all_data, ignore_index=True)
 df_filtrado = df[df["name"] == nombre_filtro]
 
 if df_filtrado.empty:
-    print(f"❌ No se encontró el usuario '{nombre_filtro}' en la hoja '{nombre_hoja}'")
+    print(f"❌ No se encontró el usuario '{nombre_filtro}' en las hojas especificadas")
 else:
     persona = df_filtrado.iloc[0]
-    correo_destino = persona["email"]
+    historial = df_filtrado[["campaign", "event"]].drop_duplicates().to_dict(orient="records")
+    correos = df_filtrado["email"].dropna().unique()
 
-    # Verificar si ya se envió
-    if os.path.exists(registro_enviados):
-        df_registro = pd.read_csv(registro_enviados)
-    else:
-        df_registro = pd.DataFrame(columns=["correo"])
+    # Cargar plantilla
+    with open(plantilla_html, "r", encoding="utf-8") as f:
+        template = Template(f.read())
 
-    if correo_destino in df_registro["correo"].values:
-        print(f"⏭ Ya se envió un correo a: {correo_destino}")
-    else:
-        historial = df_filtrado[["campaign", "event"]].to_dict(orient="records")
+    # Renderizar HTML
+    html_renderizado = template.render(
+        nombre=persona["name"],
+        correo=persona["email"],
+        departamento=persona["department"],
+        historial=historial
+    )
 
-        # Cargar plantilla
-        with open(plantilla_html, "r", encoding="utf-8") as f:
-            template = Template(f.read())
+    for correo_destino in correos:
+        # Verificar si ya se envió
+        if os.path.exists(registro_enviados):
+            df_registro = pd.read_csv(registro_enviados)
+        else:
+            df_registro = pd.DataFrame(columns=["correo"])
 
-        # Renderizar HTML
-        html_renderizado = template.render(
-            nombre=persona["name"],
-            correo=persona["email"],
-            departamento=persona["department"],
-            historial=historial
-        )
-
-        # === Envio de correo ===
-        contenido = html_renderizado
-        contenido += '<br><img src="cid:claroimg" style="width:100%; max-width:600px; margin-top:20px;">'
+        if correo_destino in df_registro["correo"].values:
+            print(f"⏭ Ya se envió un correo a: {correo_destino}")
+            continue
 
         msg = MIMEMultipart("related")
         msg["Subject"] = "Resultado Simulacion de Phishing – ClaroVTR"
@@ -64,7 +67,7 @@ else:
         msg["To"] = correo_destino
 
         alt = MIMEMultipart("alternative")
-        alt.attach(MIMEText(contenido, "html"))
+        alt.attach(MIMEText(html_renderizado, "html"))
         msg.attach(alt)
 
         if os.path.exists("claro.png"):
